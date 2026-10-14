@@ -1,0 +1,36 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Editor-local settings
+.vscode/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Downloaded datasets, model checkpoints, and generated exports
+/dataset/
+/DSMER/dataset/
+/outputs/
+/DSMER/outputs/
+/DSMER/dsmr/outputs/
+/exports/
+/DSMER/exports/
+*.pth
+*.pth.metadata.json
+*.pt
+*.onnx
+*.onnx.data
+*.safetensors
+
+# Non-source documents
+/Documentation/*.pdf
+/Documentation/*.docx
+
+# Runtime artifacts
+*.log

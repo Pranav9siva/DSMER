@@ -1,0 +1,2 @@
+class PersonMemory:
+    pass

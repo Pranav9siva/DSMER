@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HMEM Emotion Lab</title>
+  <style>
+    :root { --ink:#202b2b; --muted:#64716f; --paper:#f2f5f3; --panel:#ffffff; --line:#d9e1de; --green:#28685f; --green-dark:#20564f; --coral:#bd624e; --yellow:#b98226; --soft:#f6f8f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:'Segoe UI', 'Helvetica Neue', sans-serif; min-height:100vh; }
+    main { width:min(1200px, calc(100% - 48px)); margin:0 auto; padding:30px 0 48px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:4px 0 22px; margin-bottom:22px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--green); font:700 11px/1.3 'Segoe UI', 'Helvetica Neue', sans-serif; letter-spacing:0; text-transform:uppercase; }
+    h1 { margin:7px 0 0; font:600 32px/1.15 Georgia, 'Times New Roman', serif; }
+    .status { display:flex; align-items:center; gap:9px; background:var(--panel); border:1px solid var(--line); border-radius:5px; padding:10px 13px; min-width:150px; font:13px 'Segoe UI', 'Helvetica Neue', sans-serif; }
+    .dot { display:inline-block; flex:none; width:9px; height:9px; border-radius:50%; background:var(--yellow); }
+    .dot.ready { background:var(--green); }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:stretch; }
+    section { min-width:0; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:23px; }
+    h2 { margin:0 0 18px; font:600 20px/1.3 Georgia, 'Times New Roman', serif; }
+    label { display:block; margin:16px 0 7px; font:600 12px 'Segoe UI', 'Helvetica Neue', sans-serif; letter-spacing:0; color:var(--muted); }
+    input, textarea { width:100%; border:1px solid #cbd5d1; background:#fff; padding:12px 13px; color:var(--ink); font:15px/1.5 'Segoe UI', 'Helvetica Neue', sans-serif; border-radius:4px; }
+    input:focus, textarea:focus { outline:2px solid rgba(40,104,95,.22); border-color:var(--green); }
+    textarea { min-height:160px; resize:vertical; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .uploads { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px; }
+    input[type=file] { padding:8px; font-size:13px; background:var(--soft); }
+    button { margin-top:20px; width:100%; border:1px solid var(--green); padding:12px 16px; color:#fff; background:var(--green); font:600 14px 'Segoe UI', 'Helvetica Neue', sans-serif; cursor:pointer; border-radius:4px; }
+    button:hover { background:var(--green-dark); } button:focus-visible { outline:3px solid rgba(40,104,95,.25); outline-offset:2px; } button:disabled { opacity:.6; cursor:wait; }
+    .result { min-height:390px; display:flex; flex-direction:column; justify-content:space-between; }
+    .empty { color:var(--muted); font:14px/1.6 'Segoe UI', 'Helvetica Neue', sans-serif; background:var(--soft); border-left:3px solid var(--green); padding:14px 15px; }
+    .emotion { margin:11px 0; color:var(--green); font:600 46px/1.1 Georgia, 'Times New Roman', serif; }
+    .confidence { font:600 14px 'Segoe UI', 'Helvetica Neue', sans-serif; color:var(--coral); }
+    .meter { height:8px; background:#e5ebe8; margin-top:11px; overflow:hidden; border-radius:4px; }
+    .meter span { display:block; height:100%; width:0; background:var(--green); transition:width .35s ease; }
+    .pitch-panel { margin-top:22px; padding-top:12px; border-top:1px solid var(--line); }
+    .pitch-panel[hidden] { display:none; }
+    .pitch-chart { display:block; width:100%; height:130px; margin-top:12px; background:linear-gradient(180deg,#f6faf9 0%, #eef5f3 100%); border:1px solid var(--line); border-radius:4px; }
+    .pitch-stats { margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; font:12px/1.45 'Segoe UI', 'Helvetica Neue', sans-serif; color:var(--muted); }
+    .pitch-stats span { background:var(--soft); border:1px solid var(--line); border-radius:999px; padding:5px 9px; }
+    .pitch-tooltip { position:absolute; pointer-events:none; transform:translate(-50%, -120%); background:rgba(32,43,43,.94); color:#fff; font:11px/1.3 'Segoe UI', 'Helvetica Neue', sans-serif; padding:5px 7px; border-radius:4px; box-shadow:0 4px 18px rgba(0,0,0,.15); }
+    .meta { display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; margin-top:26px; font:12px/1.45 'Segoe UI', 'Helvetica Neue', sans-serif; color:var(--muted); }
+    .meta div { border-top:1px solid var(--line); padding-top:8px; }
+    .segments { margin-top:20px; display:grid; gap:0; }
+    .segment { border-bottom:1px solid var(--line); padding:12px 2px; color:var(--muted); font:13px/1.55 'Segoe UI', 'Helvetica Neue', sans-serif; overflow-wrap:anywhere; }
+    .segment b { color:var(--green); }
+    .error { color:#9b3b2e; margin-top:12px; font:13px 'Segoe UI', 'Helvetica Neue', sans-serif; }
+    @media (max-width:760px) { main{width:calc(100% - 32px);padding:20px 0 32px}.top{align-items:flex-start;flex-direction:column;gap:14px}.grid{grid-template-columns:1fr;gap:14px}section{padding:18px}.result{min-height:300px}.uploads{grid-template-columns:1fr 1fr} }
+    @media (max-width:420px) { .uploads{grid-template-columns:1fr}h1{font-size:28px}.emotion{font-size:40px} }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="top">
+      <div><div class="eyebrow">MELD / HMEM-NET / RESEARCH INTERFACE</div><h1>Multimodal emotion analysis</h1></div>
+      <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Checking model...</span></div>
+    </header>
+    <div class="grid">
+      <section>
+        <h2>Sample input</h2>
+        <form id="form">
+          <label for="text">Transcript</label><textarea id="text" placeholder="Type the utterance, or upload audio/video to generate it automatically."></textarea>
+          <div class="uploads"><div><label for="audio">Audio</label><input id="audio" type="file" accept="audio/*"></div><div><label for="video">Video</label><input id="video" type="file" accept="video/*"></div></div>
+          <button id="submit" type="submit">Classify emotion</button>
+        </form>
+      </section>
+      <section class="result"><div><h2>Prediction</h2><div id="empty" class="empty">No sample analyzed</div><div id="reading" hidden><div class="eyebrow">Predicted class</div><div id="emotion" class="emotion">Neutral</div><div id="confidence" class="confidence"></div><div class="meter"><span id="meter"></span></div><div id="pitchPanel" class="pitch-panel" hidden><div class="eyebrow">Fundamental frequency (F0)</div><div style="position:relative"><svg id="pitchChart" class="pitch-chart" viewBox="0 0 320 120" preserveAspectRatio="none"></svg><div id="pitchTooltip" class="pitch-tooltip" hidden></div></div><div id="pitchStats" class="pitch-stats"></div></div><div id="segments" class="segments"></div></div></div><div class="meta"><div id="modalities">Inputs: none</div><div>7 MELD emotion classes</div><div id="model">Model: checking</div><div>CPU inference endpoint</div></div><div id="error" class="error" hidden></div></section>
+    </div>
+  </main>
+  <script>
+    const names = ['Anger','Disgust','Fear','Joy','Neutral','Sadness','Surprise'];
+    const $ = id => document.getElementById(id);
+    const labelFor = (label, id) => label ? label.charAt(0).toUpperCase() + label.slice(1) : names[id] || 'Unknown';
+    function renderPitchChart(pitch) {
+      const panel = $('pitchPanel');
+      const svg = $('pitchChart');
+      const tooltip = $('pitchTooltip');
+      const stats = $('pitchStats');
+      if (!pitch || !Array.isArray(pitch.values) || pitch.values.length < 2) {
+        panel.hidden = true;
+        svg.innerHTML = '';
+        stats.innerHTML = '';
+        tooltip.hidden = true;
+        return;
+      }
+      const values = pitch.values.map(Number).filter(Number.isFinite);
+      const times = Array.isArray(pitch.times) ? pitch.times.map(Number).filter(Number.isFinite) : [];
+      const minValue = Math.min(...values);
+      const maxValue = Math.max(...values);
+      const lowerBound = Math.max(0, minValue * 0.85);
+      const range = Math.max(maxValue - lowerBound, 1);
+      const points = values.map((value, index) => {
+        const xValue = times.length > 1 ? times[index] : index / Math.max(values.length - 1, 1);
+        const x = 20 + (xValue / Math.max(times[times.length - 1] || 1, 1e-6)) * 280;
+        const y = 100 - ((value - lowerBound) / range) * 80 - 10;
+        return { x, y, value, time: times[index] ?? index };
+      });
+      const xScale = Math.max((points.at(-1)?.time ?? 1) - (points[0]?.time ?? 0), 0.01);
+      const path = points.map((point, index) => {
+        const x = 20 + ((point.time - (points[0]?.time ?? 0)) / xScale) * 280;
+        const y = 100 - ((point.value - lowerBound) / range) * 80 - 10;
+        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+      }).join(' ');
+      svg.innerHTML = `
+        <line x1="20" x2="300" y1="100" y2="100" stroke="#d9e1de" stroke-width="1"/>
+        <line x1="20" x1="20" y1="10" y2="100" stroke="#d9e1de" stroke-width="1"/>
+        <path d="${path}" fill="none" stroke="#28685f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      `;
+      stats.innerHTML = `
+        <span>Mean ${Number(pitch.mean_f0 ?? values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1)} Hz</span>
+        <span>Min ${Number(pitch.min_f0 ?? minValue).toFixed(1)} Hz</span>
+        <span>Max ${Number(pitch.max_f0 ?? maxValue).toFixed(1)} Hz</span>
+      `;
+      const updateTooltip = (event) => {
+        const rect = svg.getBoundingClientRect();
+        const x = Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1);
+        let nearest = points[0];
+        let nearestDistance = Infinity;
+        for (const point of points) {
+          const distance = Math.abs(((point.x - 20) / 280) - x);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = point;
+          }
+        }
+        tooltip.hidden = false;
+        tooltip.textContent = `${nearest.value.toFixed(1)} Hz · ${nearest.time.toFixed(2)} s`;
+        tooltip.style.left = `${((nearest.x - 20) / 280) * 100}%`;
+        tooltip.style.top = `${((100 - nearest.y) / 100) * 100}%`;
+      };
+      svg.onmousemove = updateTooltip;
+      svg.onmouseleave = () => tooltip.hidden = true;
+      panel.hidden = false;
+    }
+    async function health() {
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+        $('statusDot').classList.toggle('ready', data.status === 'ok');
+        $('statusText').textContent = data.status === 'ok' ? 'Model ready' : 'Model unavailable';
+        $('model').textContent = 'Model: ' + (data.status === 'ok' ? 'TorchScript export' : 'unavailable');
+      } catch (error) {
+        $('statusText').textContent = 'API unavailable';
+      }
+    }
+    $('form').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!$('text').value.trim() && !$('audio').files[0] && !$('video').files[0]) {
+        $('error').textContent = 'Enter a transcript or upload audio/video.';
+        $('error').hidden = false;
+        return;
+      }
+      $('submit').disabled = true;
+      $('submit').textContent = 'Transcribing...';
+      $('error').hidden = true;
+      const data = new FormData();
+      data.append('text', $('text').value);
+      if ($('audio').files[0]) data.append('audio', $('audio').files[0]);
+      if ($('video').files[0]) data.append('video', $('video').files[0]);
+      try {
+        const response = await fetch('/predict', { method: 'POST', body: data });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Prediction failed');
+        if (result.transcript) $('text').value = result.transcript;
+        const confidence = Number(result.confidence || 0);
+        $('emotion').textContent = labelFor(result.emotion_label, result.emotion);
+        $('confidence').textContent = (confidence * 100).toFixed(1) + '% confidence';
+        $('meter').style.width = (confidence * 100) + '%';
+        const supplied = Object.entries(result.input_modalities || {}).filter(([, present]) => present).map(([name]) => name);
+        $('modalities').textContent = 'Inputs: ' + (supplied.length ? supplied.join(', ') : 'none');
+        renderPitchChart(result.pitch || null);
+        $('segments').replaceChildren();
+        if (Array.isArray(result.segments) && result.segments.length > 1) {
+          result.segments.forEach((segment, index) => {
+            const element = document.createElement('div');
+            const title = document.createElement('b');
+            title.textContent = 'Turn ' + (index + 1);
+            element.className = 'segment';
+            const speaker = segment.speaker_label || 'Speaker ' + (Number(segment.speaker_id) + 1);
+            const emotion = labelFor(segment.emotion_label, segment.emotion);
+            const details = ' · ' + speaker + ' · ' + emotion + ' (' + (Number(segment.confidence || 0) * 100).toFixed(1) + '%)';
+            const bounds = Number.isFinite(Number(segment.start)) && Number.isFinite(Number(segment.end))
+              ? ' · ' + Number(segment.start).toFixed(1) + '-' + Number(segment.end).toFixed(1) + 's'
+              : '';
+            element.append(title, document.createTextNode(details + bounds), document.createElement('br'), document.createTextNode(segment.text || ''));
+            $('segments').appendChild(element);
+          });
+        }
+        $('empty').hidden = true;
+        $('reading').hidden = false;
+      } catch (error) {
+        $('error').textContent = error.message;
+        $('error').hidden = false;
+      } finally {
+        $('submit').disabled = false;
+        $('submit').textContent = 'Classify emotion';
+      }
+    });
+    health();
+  </script>
+</body>
+</html>

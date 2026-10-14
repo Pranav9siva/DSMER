@@ -1,0 +1,2 @@
+class CNNEncoder:
+    pass

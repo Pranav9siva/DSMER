@@ -1,0 +1,35 @@
+experiment:
+  name: hmem_net_baseline
+  seed: 42
+  device: cpu
+  mixed_precision: true
+  gradient_accumulation_steps: 1
+  early_stopping_patience: 5
+  log_every_n_steps: 10
+model:
+  hidden_dim: 256
+  num_speakers: 100
+  audio_dim: 1024
+  text_dim: 768
+  vision_dim: 2048
+training:
+  batch_size: 8
+  learning_rate: 0.0001
+  epochs: 1
+  weight_decay: 0.0001
+  debug_subset_size: 64
+ablation:
+  use_person_memory: true
+  use_dialogue_memory: true
+  use_conversation_memory: true
+  use_memory_controller: true
+  use_memory_fusion: true
+  use_memory_update: true
+paths:
+  data_dir: dataset
+  output_dir: ./outputs
+  log_dir: ./logs
+fine_tune: false
+pretrained_audio: null
+pretrained_text: null
+pretrained_vision: null

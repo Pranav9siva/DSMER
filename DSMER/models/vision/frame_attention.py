@@ -1,0 +1,2 @@
+class FrameAttention:
+    pass
