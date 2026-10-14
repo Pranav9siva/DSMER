@@ -22,12 +22,12 @@ def test_real_meld_mp4_loads_audio_and_video():
     assert bool(sample["video_available"])
 
 
-def test_missing_media_is_explicit():
+def test_missing_media_is_explicit(tmp_path, synthetic_meld_dataset):
     dataset = MELDConversationDataset(
         dataset_name="meld",
         split="train",
-        media_root="dataset/MELD/media/does-not-exist",
-        processed_dir="dataset/processed/test_missing_media_fixture",
+        media_root=str(tmp_path / "missing-media"),
+        processed_dir=str(tmp_path / "processed"),
     )
     sample = dataset[0]
     assert not bool(sample["audio_available"])
